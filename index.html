@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -106,7 +107,10 @@ function submitSelection() {
   if (!name) return alert('請輸入姓名！');
   if (selectedSeats.size === 0) return alert('尚未選擇任何座位！');
   const seats = Array.from(selectedSeats).join(', ');
-  if (confirm(`請確認：\n姓名: ${name}\n座位: ${seats}`)) {
+
+  if (confirm(`請確認：
+姓名: ${name}
+座位: ${seats}`)) {
     fetch(scriptUrl, {
       method: 'POST',
       body: new URLSearchParams({ name, seats })
@@ -114,12 +118,19 @@ function submitSelection() {
     .then(res => res.text())
     .then(() => {
       alert('送出成功！');
-      document.getElementById('result').innerText = `姓名: ${name}\n已送出座位：${seats}`;
-      seats.split(',').map(s => s.trim()).forEach(seatId => {
-        unavailableSeats.add(seatId);
-        selectedSeats.delete(seatId);
-      });
-      renderSeats();
+      document.getElementById('result').innerText = `姓名: ${name}
+已送出座位：${seats}`;
+      selectedSeats.clear();
+      fetch(scriptUrl)
+        .then(res => res.json())
+        .then(data => {
+          unavailableSeats.clear();
+          for (let i = 1; i <= 14; i++) unavailableSeats.add(`1-${i}`);
+          for (let row = 2; row <= 3; row++) for (let i = 1; i <= 8; i++) unavailableSeats.add(`${row}-${i}`);
+          for (let row = 11; row <= 23; row++) for (let i = 9; i <= 24; i++) unavailableSeats.add(`${row}-${i}`);
+          data.forEach(seatId => unavailableSeats.add(seatId));
+          renderSeats();
+        });
     })
     .catch(err => {
       alert('送出失敗！');
